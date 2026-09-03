@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<title>TCCC TTA Evaluator</title>
+<style>
+:root{--bg:#121212;--card:#1e1e1e;--line:#333;--text:#e0e0e0;--muted:#9ca3af;--blue:#2196f3;--red:#f44336;--green:#4caf50;--amber:#ffb300}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{padding-bottom:86px}header{position:sticky;top:0;z-index:20;background:#121212;padding:12px 14px 10px;border-bottom:1px solid #2b2b2b}
+h1{font-size:20px;color:#fff;margin:0}.sub{font-size:11px;color:var(--muted);margin-top:2px}
+.meta{display:grid;grid-template-columns:1fr 1fr 82px;gap:7px;margin-top:9px}input,select,textarea{background:#1e1e1e;color:#fff;border:1px solid #3a3a3a;border-radius:7px;font:inherit}
+.meta input,.meta select{padding:10px;width:100%}.kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
+.kpi{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:7px;text-align:center}.kpi small{display:block;color:#aaa;font-size:9px}.kpi strong{font-size:21px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+main{padding:12px;max-width:760px;margin:auto}.card{background:#1e1e1e;border:1px solid #333;border-radius:9px;margin-bottom:12px;overflow:hidden}
+.cardHead{display:flex;justify-content:space-between;gap:8px;padding:12px 14px;border-bottom:1px solid #333;font-weight:800;color:#fff}
+.timer{padding:13px}.timerDisplay{font-size:2.45rem;font-weight:bold;color:#4caf50;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center;padding:5px}
+.timerBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border:none;padding:13px 10px;border-radius:7px;color:white;font-size:1rem;font-weight:bold;cursor:pointer;touch-action:manipulation}
+.start{background:#4caf50}.stop{background:#f44336}.instant{background:#333;border:1px solid #555;width:100%;margin-top:8px}
+.timegrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;text-align:center;font-size:11px;color:#aaa;margin-top:8px}.timegrid b{color:#fff}
+.result{font-weight:800;text-align:center;margin-top:7px}.good{color:#4caf50}.bad{color:#f44336}
+.tabs{display:flex;gap:7px;overflow:auto;padding:10px 10px 2px;scrollbar-width:none}.tab{border:1px solid #444;background:#222;color:#ddd;border-radius:999px;padding:9px 13px;font-weight:800;white-space:nowrap}.tab.active{background:#2196f3;color:#fff;border-color:#2196f3}
+.item{padding:13px;border-top:1px solid #333}.itemText{line-height:1.38;font-size:14px}.crit{display:inline-block;background:#f44336;color:#fff;border-radius:5px;font-size:10px;font-weight:900;padding:2px 6px;margin-left:5px}
+.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}.choice{background:#242424;color:#ddd;border:1px solid #444;border-radius:7px;padding:11px 3px;font-size:11px;font-weight:800}
+.choice.met.sel{background:#1b5e20;border-color:#4caf50}.choice.notmet.sel{background:#7f1d1d;border-color:#f44336}.choice.no.sel{background:#0d47a1;border-color:#2196f3}.choice.na.sel{background:#444;border-color:#777}
+.stamp{font-size:10px;color:#999;margin-top:5px}textarea{width:100%;min-height:52px;margin-top:8px;padding:9px;resize:vertical}
+.sectionTimers{padding:0 12px 10px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action{background:#333;color:#fff;border:1px solid #555;border-radius:8px;padding:13px;font-weight:800}.action.primary{background:#2196f3;border-color:#2196f3}
+.log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;max-height:220px;overflow:auto;padding:10px}.logrow{padding:6px 0;border-bottom:1px solid #2d2d2d}.muted{color:#999}
+footer{position:fixed;left:0;right:0;bottom:0;z-index:25;background:#121212;border-top:1px solid #333;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}footer .btn{font-size:12px;padding:12px 4px}
+.modal{position:fixed;inset:0;background:#000a;z-index:50;display:none;align-items:flex-end}.sheet{background:#1e1e1e;width:100%;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px}pre{white-space:pre-wrap;background:#121212;border:1px solid #333;padding:10px;border-radius:7px;color:#eee;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+<header>
+<h1>TCCC TTA Evaluator</h1><div class="sub">Tier 4 · Offline PWA · LocalStorage · Timeline + Session Log</div>
+<div class="meta"><input id="student" placeholder="Student"><input id="evaluator" placeholder="Evaluator"><select id="attempt"><option>1st</option><option>2nd</option></select></div>
+<div class="kpis"><div class="kpi"><small>ELAPSED</small><strong id="ttaTop">00:00</strong></div><div class="kpi"><small>CRITICAL MISSED</small><strong id="critTop">0</strong></div><div class="kpi"><small>CHECKED</small><strong id="pctTop">0%</strong></div></div>
+</header>
+<main>
+<div class="card"><div class="cardHead"><span>Overall TTA</span><span>≤ 30:00</span></div><div id="overallTimer" class="timer"></div></div>
+<div class="card"><div class="cardHead"><span>Skillsheet</span><span id="secProgress"></span></div><div id="tabs" class="tabs"></div><div id="sectionTimers" class="sectionTimers"></div><div id="items"></div></div>
+<div class="card"><div class="cardHead"><span>Session Log</span><span id="eventCount"></span></div><div id="log" class="log"></div></div>
+<div class="actions">
+<button class="action primary" onclick="showAAR()">Build AAR</button>
+<button class="action" onclick="exportExcel()">Export Excel</button>
+<button class="action" onclick="exportJSON()">Save Backup</button>
+<button class="action" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
+<button class="action" style="grid-column:1 / -1" onclick="resetEval()">New Evaluation</button>
+<input id="restoreFile" type="file" accept=".json,application/json" style="display:none" onchange="restoreJSON(event)">
+</div>
+</main>
+<footer><button class="btn start" onclick="timerAction('tta','start')">START TTA</button><button class="btn stop" onclick="timerAction('tta','stop')">END TTA</button><button class="btn" style="background:#ffb300;color:#111" onclick="showAAR()">AAR</button></footer>
+<div class="modal" id="modal" onclick="if(event.target===this)this.style.display='none'"><div class="sheet"><h2>Draft AAR</h2><pre id="aarText"></pre><div class="actions"><button class="action primary" onclick="copyAAR()">Copy AAR</button><button class="action" onclick="document.getElementById('modal').style.display='none'">Close</button></div></div></div>
+<script>
+const sections=[{"code": "CUF", "title": "CARE UNDER FIRE", "items": [{"id": "T4-001", "text": "Returned fire to gain fire superiority and took cover", "critical": true}, {"id": "T4-002", "text": "Directed casualty to remain engaged as a combatant, if appropriate; or to move to cover and apply self-aid, if able", "critical": true}, {"id": "T4-003", "text": "Performed casualty drag/carry to move casualty as tactical situation permitted", "critical": false}, {"id": "T4-004", "text": "Extracted casualty from sources of burning and stopped burning process if needed", "critical": false}, {"id": "T4-005", "text": "Addressed life-threatening extremity hemorrhage using a CoTCCC-recommended limb tourniquet over the uniform, clearly proximal to the bleeding site, or high and tight if the bleeding site was not readily apparent", "critical": true}]}, {"code": "TFC", "title": "TACTICAL FIELD CARE", "items": [{"id": "T4-006", "text": "Established security perimeter/maintained tactical situational awareness", "critical": false}, {"id": "T4-007", "text": "If tactical situation permitted, took body substance isolation precautions", "critical": false}, {"id": "T4-008", "text": "Triaged casualties as required", "critical": true}]}, {"code": "M", "title": "MASSIVE HEMORRHAGE", "items": [{"id": "T4-010", "text": "Assessed effectiveness of TQs placed in CUF, if ineffective applied deliberate TQ", "critical": true}, {"id": "T4-011", "text": "Applied a deliberate TQ directly to skin, 2\u20133 inches above bleed site, if not done in CUF (or applied 2nd TQ side-by-side if bleeding not controlled with the 1st TQ)", "critical": true}, {"id": "T4-012", "text": "Applied a second tourniquet side-by-side if bleeding was not controlled with the first tourniquet.", "critical": false}, {"id": "T4-013", "text": "Packed any wounds not amenable to TQs use with Combat Gauze or another CoTCCC-recommended hemostatic dressing/adjuncts (held pressure for 3 minutes) and applied pressure bandages", "critical": false}, {"id": "T4-014", "text": "Performed blood sweep of: Neck, Axillary, Inguinal, Anterior, Posterior, and Extremities", "critical": false}, {"id": "T4-015", "text": "Packed and dressed junctional wounds with a CoTCCC-recommended hemostatic dressing or adjunct and applied junctional TQ(s), without delay when indicated and available", "critical": true}, {"id": "T4-016", "text": "Performed initial hemorrhagic shock assessment", "critical": true}]}, {"code": "A", "title": "AIRWAY", "items": [{"id": "T4-017", "text": "Assessed for unobstructed airway", "critical": true}, {"id": "T4-018", "text": "Identified traumatic airway obstruction or impending traumatic airway obstruction", "critical": true}, {"id": "T4-019", "text": "Allowed conscious casualty to sit up, lean forward, or assume the position that best protected the airway", "critical": false}, {"id": "T4-020", "text": "Placed unconscious casualty in the recovery position with head tilted back and chin away from chest", "critical": false}, {"id": "T4-021", "text": "Used suction, if available and appropriate", "critical": false}, {"id": "T4-023", "text": "If previous measures unsuccessful or airway obstruction is unmanageable, performed cricothyroidotomy. NOTE: Used lidocaine on conscious casualties", "critical": true}, {"id": "T4-024", "text": "Confirmed airway placement with continuous EtCO2 capnography, if available", "critical": false}, {"id": "T4-025", "text": "Frequently reassess airway patency, SpO2, and EtCO2, as airway status changed over time", "critical": false}, {"id": "T4-026", "text": "Did not perform cervical spine stabilization for casualty with only penetrating trauma", "critical": false}]}, {"code": "R", "title": "RESPIRATION", "items": [{"id": "T4-027", "text": "Removed and opened body armor as tactically feasible and inspected torso wounds (front and back)", "critical": true}, {"id": "T4-028", "text": "Assessed breathing and confirmed pulsed oximetry, if available", "critical": true}, {"id": "T4-029", "text": "Suspected for tension pneumothorax with significant torso trauma or primary blast injury with respiratory distress, unilateral decreased breath sounds, hypoxia, shock, or traumatic arrest", "critical": false}, {"id": "T4-030", "text": "Applied vented chest seal to all open or sucking chest wounds", "critical": false}, {"id": "T4-031", "text": "Used a non-vented chest seal if vented seal was unavailable", "critical": false}, {"id": "T4-032", "text": "Burped or removed chest seal if increasing hypoxia, respiratory distress, hypotension, or suspected tension pneumothorax developed", "critical": false}, {"id": "T4-033", "text": "Performed needle decompression (NDC) for suspected tension pneumothorax", "critical": false}, {"id": "T4-034", "text": "Used a 10-gauge or 14-gauge, 3.25-inch needle/catheter", "critical": false}, {"id": "T4-035", "text": "Used the 5th ICS in the AAL or the 2nd ICS in the MCL", "critical": false}, {"id": "T4-036", "text": "Held catheter in place for 5 to 10 seconds, removed needle, and left catheter in place", "critical": false}, {"id": "T4-037", "text": "Reassessed NDC effectiveness using respiratory improvement, air release, SpO\u2082 response, return of consciousness, or radial pulse", "critical": false}, {"id": "T4-038", "text": "Repeated NDC at alternate approved site if initial NDC failed", "critical": false}, {"id": "T4-039", "text": "Considered decompression of the opposite side based on mechanism of injury and physical findings", "critical": false}, {"id": "T4-040", "text": "Monitored for increasing hypoxia, respiratory distress, hypotension, or subsequent tension pneumothorax", "critical": false}, {"id": "T4-041", "text": "Supported inadequate ventilation with properly sized NPA and a 1000mL resuscitator BVM, when indicated", "critical": false}, {"id": "T4-042", "text": "Used continuous SpO2 and EtCO2 monitoring when available", "critical": false}, {"id": "T4-043", "text": "Reassessed response after NDC and repeated NDC as indicated", "critical": false}]}, {"code": "C", "title": "CIRCULATION", "items": [{"id": "T4-044", "text": "Assessed for suspected pelvic fracture after severe blunt force or blast injury with one or more of the following: pelvic pain, major lower limb amputation or near amputation, physical exam findings suggestive of pelvic fracture, unconsciousness, or shock", "critical": true}, {"id": "T4-045", "text": "Applied pelvic compression device", "critical": true}, {"id": "T4-046", "text": "Reassessed all prior tourniquets", "critical": true}, {"id": "T4-047", "text": "Exposed wound and determined if tourniquet was still needed", "critical": false}, {"id": "T4-048", "text": "If a limb tourniquet over the uniform was still needed, applied a second tourniquet directly to the skin, 2 to 3 inches above the bleeding site, then loosened the first tourniquet", "critical": false}, {"id": "T4-049", "text": "Confirmed bleeding control", "critical": false}, {"id": "T4-050", "text": "Checked distal pulse, if no traumatic amputation was present", "critical": false}, {"id": "T4-051", "text": "Tightened tourniquet or applied second tourniquet side-by-side if bleeding continued or distal pulse remained", "critical": false}, {"id": "T4-052", "text": "Converted limb or junctional tourniquet to hemostatic or pressure dressing only if casualty was not in shock, the wound could be closely monitored, and the tourniquet was not controlling bleeding from an amputated extremity", "critical": false}, {"id": "T4-053", "text": "Marked all tourniquets with time of application", "critical": false}, {"id": "T4-054", "text": "Documented tourniquet application, re-application, conversion, and removal times on DD Form 1380", "critical": true}, {"id": "T4-055", "text": "Assessed for hemorrhagic shock", "critical": false}, {"id": "T4-056", "text": "Established IV/IO access when casualty was in hemorrhagic shock, at significant risk of shock, or required medications but could not take them by mouth", "critical": false}, {"id": "T4-057", "text": "Administered TXA 2 g slow IV/IO push as soon as possible, but not later than 3 hours after injury, when indicated", "critical": false}, {"id": "T4-058", "text": "Administered blood products for hemorrhagic shock under approved protocol, using a fluid warming device when available", "critical": true}, {"id": "T4-059", "text": "Administered 1 g calcium after the first transfused blood product", "critical": false}, {"id": "T4-060", "text": "Reassessed casualty after each unit of blood products and discontinued resuscitation when radial pulse, mental status, or systolic BP target was met", "critical": false}, {"id": "T4-061", "text": "Assessed refractory shock for possible untreated tension pneumothorax and treated with repeated NDC, or finger thoracostomy/chest tube if trained and authorized", "critical": false}, {"id": "T4-062", "text": "Repositioned tourniquet directly to the skin once effective reposition tourniquet is applied; confirm no bleeding and no distal pulse, if there is no traumatic amputation", "critical": false}, {"id": "T4-063", "text": "Tightened the tourniquet or applied a second tourniquet side-by-side, if bleeding persists or distal pulse remains", "critical": false}, {"id": "T4-064", "text": "Notified tactical leader if casualty required evacuation (lines 3, 4, and 5 from the 9-Line at a minimum)", "critical": false}]}, {"code": "H", "title": "HYPOTHERMIA / HEAD INJURIES", "items": [{"id": "T4-065", "text": "Initiated early hypothermia prevention", "critical": false}, {"id": "T4-066", "text": "Minimized casualty exposure and insulated casualty from cold surfaces", "critical": true}, {"id": "T4-067", "text": "Replace wet clothing, if feasible", "critical": false}, {"id": "T4-068", "text": "Applied active warming without placing active heat directly on skin", "critical": false}, {"id": "T4-069", "text": "Enclosed casualty in impermeable enclosure system, when available", "critical": false}, {"id": "T4-070", "text": "Warmed IV/IO fluids when equipment was available", "critical": false}, {"id": "T4-071", "text": "Assessed for suspected head injury: unable to follow simple instructions beyond 10 minutes after injury with suspected head injury and no alternate cause", "critical": false}, {"id": "T4-072", "text": "Prevented hypoxemia and hypotension in suspected moderate/severe TBI", "critical": true}, {"id": "T4-073", "text": "Maintained SpO\u2082 \u2265 92% when oxygen was available", "critical": false}, {"id": "T4-074", "text": "Targeted SBP >100 mmHg or normal radial pulse if BP monitoring was unavailable", "critical": false}, {"id": "T4-075", "text": "If hemorrhagic shock was present, prioritized hemorrhagic shock resuscitation", "critical": false}, {"id": "T4-076", "text": "If suspected moderate/severe TBI was present with no evidence of hemorrhage, administer 1\u20132 units of plasma when available and authorized", "critical": false}, {"id": "T4-077", "text": "If EtCO\u2082 monitoring was unavailable, ventilated at 10 breaths per minute using low tidal volume", "critical": false}, {"id": "T4-078", "text": "Elevated head and torso greater than 30 degrees if casualty was not in shock and tactically feasible", "critical": false}, {"id": "T4-079", "text": "Identified signs of herniation, including asymmetric or fixed/dilated pupils or posturing", "critical": false}, {"id": "T4-080", "text": "Administered hypertonic saline when herniation was suspected: 250 mL of 3% or 5% HTS IV/IO over at least 10 minutes OR 30 mL of 23.4% HTS IV/IO over at least 10 minutes", "critical": false}, {"id": "T4-081", "text": "Repeated hypertonic saline once in 20 minutes if no response. NOTE: Did not use hypertonic saline prophylactically", "critical": false}, {"id": "T4-082", "text": "Managed penetrating TBI or open skull fracture as treatable injury, not automatically expectant", "critical": false}, {"id": "T4-083", "text": "Applied hemostatic gauze with gentle pressure for active bleeding from wound or wound edges. NOTE: Did not pack wound cavity. Did not close wound with staples or sutures.", "critical": false}, {"id": "T4-084", "text": "Reassessed neurologic status every 5 to 10 minutes", "critical": false}, {"id": "T4-085", "text": "Reassessed prior interventions using (M/A/R/C/H)", "critical": true}, {"id": "T4-086", "text": "Assessed for penetrating eye trauma", "critical": false}, {"id": "T4-087", "text": "Performed rapid visual acuity test and documented findings", "critical": true}, {"id": "T4-088", "text": "Covered injured eye with rigid eye shield, not a pressure patch", "critical": false}, {"id": "T4-089", "text": "Administered ceftriaxone 2 g IV/IM or cefadroxil 1 g PO as soon as possible", "critical": true}, {"id": "T4-091", "text": "Initiated electronic monitoring if indicated and equipment was available", "critical": false}]}, {"code": "P", "title": "PAIN", "items": [{"id": "T4-092", "text": "Checked for drug allergies before medication administration", "critical": true}, {"id": "T4-093", "text": "Documented mental status using AVPU before ketamine", "critical": true}, {"id": "T4-094", "text": "Disarmed casualty and considered disconnecting communications equipment when ketamine was administered", "critical": false}, {"id": "T4-095", "text": "Administered CWMP for mission-capable casualty who could take PO medications: Acetaminophen 1000 to 1300 mg PO every 8 hours; Meloxicam 15 mg PO once daily; Suzetrigine 100 mg PO once, then 50 mg PO every 12 hours", "critical": false}, {"id": "T4-096", "text": "Administered ketamine or esketamine for non-mission-capable casualty when indicated", "critical": false}, {"id": "T4-097", "text": "Repeated analgesia every 30 minutes PRN based on guideline endpoints", "critical": false}, {"id": "T4-098", "text": "Used analgesia endpoints of reduced pain or development of nystagmus", "critical": false}, {"id": "T4-099", "text": "Monitored airway, breathing, circulation, mentation, and pain response after potent analgesics", "critical": false}, {"id": "T4-100", "text": "Avoided benzodiazepine co-administration with ketamine or esketamine", "critical": false}]}, {"code": "ABX", "title": "ANTIBIOTICS", "items": [{"id": "T4-101", "text": "Checked for drug allergies before administration of any medications", "critical": true}, {"id": "T4-102", "text": "Administered for all open combat wounds and invasive procedures", "critical": false}, {"id": "T4-103", "text": "If casualty could take PO medications: Cefadroxil 1 g PO once daily (preferred) or Cephalexin 500 mg PO every 6 hours (alternative)", "critical": false}, {"id": "T4-104", "text": "If casualty could not take PO medications due to shock, unconsciousness, or other clinical limitation: Ceftriaxone 2 g IV/IO/IM once daily", "critical": false}]}, {"code": "W", "title": "ADDITIONAL WOUNDS", "items": [{"id": "T4-105", "text": "Reassessed any and all medical interventions", "critical": true}, {"id": "T4-106", "text": "Reassessed known wounds and identify additional wounds", "critical": false}, {"id": "T4-107", "text": "Assessed for other wounds and, if indicated, apply dressing(s) for abdominal evisceration(s), dressing(s) to stump(s), dressing(s) to any impaled object(s)", "critical": false}, {"id": "T4-108", "text": "Monitored facial burns for inhalation injury and consider early airway intervention", "critical": false}, {"id": "T4-109", "text": "Estimated TBSA using Rule of Nines", "critical": false}, {"id": "T4-110", "text": "Covered burns with dry sterile dressings and prevent hypothermia", "critical": false}, {"id": "T4-111", "text": "If burns are >20% TBSA, start fluid resuscitation when IV/IO access is established", "critical": false}, {"id": "T4-112", "text": "Treated as trauma casualty with burns. NOTE: Do not give antibiotics for burns alone", "critical": false}, {"id": "T4-113", "text": "Used procedural sedation for severe injury, casualty safety, mission success, or invasive procedure: Ketamine 1\u20132 mg/kg slow IV/IO push initial dose OR Ketamine 300 mg IM or 2\u20133 mg/kg IM initial dose", "critical": false}]}, {"code": "S", "title": "SPLINTED FRACTURES", "items": [{"id": "T4-114", "text": "Splinted any fractures without disrupting any impaled objects", "critical": true}, {"id": "T4-115", "text": "Rechecked distal pulse, motor, and sensation after splinting when feasible", "critical": false}]}, {"code": "COMMS", "title": "COMMUNICATION", "items": [{"id": "T4-116", "text": "Considered bilateral needle decompression for casualty with torso trauma or polytrauma, who had no pulse or respirations", "critical": false}, {"id": "T4-117", "text": "Communicated with the casualty, if possible", "critical": false}, {"id": "T4-118", "text": "Communicated with tactical leadership and reported lines 3, 4, and 5 from the MEDEVAC Request report", "critical": false}, {"id": "T4-119", "text": "Communicated with medical evacuation personnel and relayed MIST report", "critical": true}]}, {"code": "DOC", "title": "DOCUMENTATION", "items": [{"id": "T4-120", "text": "Documented all findings and treatments on a DD Form 1380 and attached it to the casualty", "critical": false}]}, {"code": "EVAC", "title": "PREPARED FOR EVACUATION", "items": [{"id": "T4-121", "text": "Placed and secured casualty on litter for evacuation, if not completed already", "critical": false}, {"id": "T4-122", "text": "Secured all loose bandages, equipment, hypothermia wraps, and litter straps, etc., as needed", "critical": true}, {"id": "T4-123", "text": "Staged casualties for evacuation and identified litter team(s)", "critical": false}, {"id": "T4-124", "text": "Maintained security/safety at the evacuation point", "critical": false}]}];
+const timerDefs=[{"id": "tta", "section": "GLOBAL", "label": "Overall TTA", "startLabel": "START TTA", "stopLabel": "END TTA", "mode": "max", "seconds": 1800, "standard": "\u2264 30:00"}, {"id": "cuf_tq", "section": "CUF", "label": "CUF Tourniquet", "startLabel": "START TQ", "stopLabel": "TQ EFFECTIVE", "mode": "max", "seconds": 60, "standard": "\u2264 1:00"}, {"id": "tq", "section": "M", "label": "Deliberate Tourniquet", "startLabel": "START TQ", "stopLabel": "TQ EFFECTIVE", "mode": "max", "seconds": 60, "standard": "\u2264 1:00"}, {"id": "pressure", "section": "M", "label": "Wound Packing Pressure", "startLabel": "START PRESSURE", "stopLabel": "RELEASE PRESSURE", "mode": "min", "seconds": 180, "standard": "\u2265 3:00"}, {"id": "ketamine", "section": "P", "label": "Ketamine IV/IO", "startLabel": "START KETAMINE", "stopLabel": "KETAMINE COMPLETE", "mode": "min", "seconds": 60, "standard": "\u2265 1:00"}, {"id": "hts", "section": "H", "label": "Hypertonic Saline", "startLabel": "START HTS", "stopLabel": "HTS COMPLETE", "mode": "min", "seconds": 600, "standard": "\u2265 10:00"}];
+const instantDefs=[{"id": "allergies", "section": "C", "label": "CHECKED ALLERGIES"}, {"id": "txa", "section": "C", "label": "TXA ADMINISTERED"}, {"id": "blood1", "section": "C", "label": "1ST BLOOD PRODUCT"}, {"id": "calcium", "section": "C", "label": "CALCIUM ADMINISTERED"}, {"id": "abx", "section": "ABX", "label": "ANTIBIOTIC ADMINISTERED"}, {"id": "mist", "section": "COMMS", "label": "MIST REPORT"}];
+const STORAGE_KEY='TCCC_TTA_TIER4_V2';
+
+function blankState(){return{student:'',evaluator:'',attempt:'1st',section:'CUF',ratings:{},notes:{},stamps:{},timers:{},instants:{},events:[],createdAt:new Date().toISOString()}}
+let state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')||blankState();
+let interval=null;
+const nowMs=()=>Date.now();
+const iso=ms=>new Date(ms).toISOString();
+const clock=ms=>new Date(ms).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function dur(ms){const sec=Math.max(0,Math.round((ms||0)/1000)),m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function save(){state.student=student.value;state.evaluator=evaluator.value;state.attempt=attempt.value;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));updateKPIs()}
+function addEvent(type,label,detail='',itemId=''){state.events.push({timestamp:iso(nowMs()),type,label,detail,itemId});save();renderLog()}
+function timerResult(def,e){const s=e/1000,met=def.mode==='max'?s<=def.seconds:s>=def.seconds;return{met,text:(met?'MET':'NOT MET')+' — '+def.standard}}
+function timerHTML(def){const t=state.timers[def.id]||{},e=t.start?((t.stop||nowMs())-t.start):0,r=t.stop?timerResult(def,e):null;return `<div class="timer"><div><b>${def.label}</b><span style="float:right;font-size:11px;color:#999">${def.standard}</span></div><div class="timerDisplay" id="disp_${def.id}">${dur(e)}</div><div class="timerBtns"><button class="btn start" onclick="timerAction('${def.id}','start')">${def.startLabel}</button><button class="btn stop" onclick="timerAction('${def.id}','stop')">${def.stopLabel}</button></div><div class="timegrid"><div>Start<br><b>${t.start?clock(t.start):'—'}</b></div><div>Stop<br><b>${t.stop?clock(t.stop):'—'}</b></div><div>Elapsed<br><b>${t.stop?dur(e):'—'}</b></div></div><div class="result ${r?(r.met?'good':'bad'):''}">${r?r.text:''}</div></div>`}
+function renderOverall(){overallTimer.innerHTML=timerHTML(timerDefs[0])}
+function timerAction(id,action){const def=timerDefs.find(d=>d.id===id),t=state.timers[id]||{};if(action==='start'){if(t.start&&!t.stop&&!confirm(def.label+' is already running. Restart it?'))return;t.start=nowMs();t.stop=null;state.timers[id]=t;addEvent('TIMER_START',def.label,clock(t.start))}else{if(!t.start)return;t.stop=nowMs();state.timers[id]=t;const e=t.stop-t.start,r=timerResult(def,e);addEvent('TIMER_STOP',def.label,dur(e)+' · '+r.text)}save();renderOverall();renderSectionTimers()}
+function instantAction(id){const d=instantDefs.find(x=>x.id===id),ts=nowMs();state.instants[id]=ts;addEvent('INSTANT',d.label,clock(ts));save();renderSectionTimers()}
+function renderTabs(){tabs.innerHTML=sections.map(s=>`<button class="tab ${state.section===s.code?'active':''}" onclick="state.section='${s.code}';save();renderChecklist()">${s.code}</button>`).join('')}
+function renderSectionTimers(){const defs=timerDefs.filter(d=>d.section===state.section),inst=instantDefs.filter(d=>d.section===state.section);sectionTimers.innerHTML=defs.map(timerHTML).join('')+inst.map(d=>`<button class="btn instant" onclick="instantAction('${d.id}')">${d.label}${state.instants[d.id]?'<br><span style="font-size:11px;color:#aaa">'+clock(state.instants[d.id])+'</span>':''}</button>`).join('')}
+function renderChecklist(){renderTabs();renderSectionTimers();const sec=sections.find(s=>s.code===state.section),done=sec.items.filter(i=>state.ratings[i.id]).length;secProgress.textContent=done+'/'+sec.items.length;items.innerHTML=sec.items.map(i=>{const v=state.ratings[i.id]||'';return `<div class="item"><div class="itemText">${i.text}${i.critical?'<span class="crit">C</span>':''}</div><div class="choices">${[['MET','met'],['NOT MET','notmet'],['N/O','no'],['N/A','na']].map(([x,c])=>`<button class="choice ${c} ${v===x?'sel':''}" onclick="rateItem('${i.id}','${x}')">${x}</button>`).join('')}</div><div class="stamp">${state.stamps[i.id]?'Recorded '+clock(state.stamps[i.id]):''}</div><textarea placeholder="Evaluator note" oninput="state.notes['${i.id}']=this.value;save()">${state.notes[i.id]||''}</textarea></div>`}).join('')}
+function rateItem(id,value){const item=sections.flatMap(s=>s.items).find(i=>i.id===id),ts=nowMs();state.ratings[id]=value;state.stamps[id]=ts;addEvent('CHECKLIST',item.text,value,id);save();renderChecklist()}
+function updateKPIs(){const all=sections.flatMap(s=>s.items),rated=all.filter(i=>state.ratings[i.id]).length,miss=all.filter(i=>i.critical&&state.ratings[i.id]==='NOT MET').length;pctTop.textContent=Math.round(rated/all.length*100)+'%';critTop.textContent=miss;const t=state.timers.tta||{};ttaTop.textContent=t.start?dur((t.stop||nowMs())-t.start):'00:00'}
+function renderLog(){eventCount.textContent=state.events.length+' events';log.replaceChildren();if(!state.events.length){const d=document.createElement('div');d.className='muted';d.textContent='No events recorded.';log.appendChild(d);return}[...state.events].reverse().forEach(e=>{const r=document.createElement('div');r.className='logrow';const a=document.createElement('div');a.textContent=new Date(e.timestamp).toLocaleTimeString()+'  '+e.type+'  '+e.label;const b=document.createElement('div');b.className='muted';b.textContent=e.detail||'';r.append(a,b);log.appendChild(r)})}
+function tick(){timerDefs.forEach(d=>{const t=state.timers[d.id]||{},el=document.getElementById('disp_'+d.id);if(el&&t.start&&!t.stop)el.textContent=dur(nowMs()-t.start)});updateKPIs()}
+function aar(){
+  const all=sections.flatMap(s=>s.items);
+  const met=all.filter(i=>state.ratings[i.id]==='MET');
+  const not=all.filter(i=>state.ratings[i.id]==='NOT MET');
+  const no=all.filter(i=>state.ratings[i.id]==='N/O');
+  const tta=state.timers.tta||{};
+  const ttaStart=tta.start||null;
+
+  const elapsedFromStart=(timestamp)=>{
+    if(!ttaStart || !timestamp) return '—';
+    return dur(timestamp-ttaStart);
+  };
+
+  const timeline=[];
+
+  if(tta.start){
+    timeline.push({ts:tta.start,text:`${elapsedFromStart(tta.start)}  TTA START`});
+  }
+
+  timerDefs.forEach(def=>{
+    if(def.id==='tta') return;
+    const x=state.timers[def.id]||{};
+    if(x.start){
+      timeline.push({ts:x.start,text:`${elapsedFromStart(x.start)}  ${def.label.toUpperCase()} START`});
+    }
+    if(x.stop){
+      const e=x.stop-x.start;
+      const r=timerResult(def,e);
+      timeline.push({
+        ts:x.stop,
+        text:`${elapsedFromStart(x.stop)}  ${def.label.toUpperCase()} COMPLETE — ${dur(e)} [${r.text}]`
+      });
+    }
+  });
+
+  instantDefs.forEach(def=>{
+    const ts=state.instants[def.id];
+    if(ts){
+      timeline.push({ts,text:`${elapsedFromStart(ts)}  ${def.label}`});
+    }
+  });
+
+  if(tta.stop){
+    const total=tta.stop-tta.start;
+    const result=timerResult(timerDefs.find(d=>d.id==='tta'),total);
+    timeline.push({
+      ts:tta.stop,
+      text:`${elapsedFromStart(tta.stop)}  TTA COMPLETE — ${dur(total)} [${result.text}]`
+    });
+  }
+
+  timeline.sort((a,b)=>a.ts-b.ts);
+
+  const clockReference=tta.start
+    ? `TTA start clock time: ${clock(tta.start)}`
+    : 'TTA start clock time: Not recorded';
+
+  const sessionLog=state.events.map(e=>{
+    const eventClock=new Date(e.timestamp).toLocaleTimeString([],{
+      hour:'2-digit',
+      minute:'2-digit',
+      second:'2-digit'
+    });
+    const detail=e.detail?` — ${e.detail}`:'';
+    return `${eventClock}  ${e.type}  ${e.label}${detail}`;
+  });
+
+  return `TCCC TTA — DRAFT AAR
+Student: ${state.student||'—'}
+Evaluator: ${state.evaluator||'—'}
+Attempt: ${state.attempt}
+TTA Time: ${tta.start?dur((tta.stop||nowMs())-tta.start):'Not started'}
+Critical items missed: ${not.filter(i=>i.critical).length}
+${clockReference}
+
+TIMELINE / PERFORMANCE
+${timeline.length?timeline.map(x=>x.text).join('\n'):'No timed events recorded.'}
+
+SUSTAINS
+${met.slice(0,12).map(i=>'• '+i.text+(state.notes[i.id]?' — '+state.notes[i.id]:'')).join('\n')||'None recorded'}
+
+IMPROVES
+${not.map(i=>'• '+(i.critical?'[CRITICAL] ':'')+i.text+(state.notes[i.id]?' — '+state.notes[i.id]:'')).join('\n')||'None recorded'}
+
+NOT OBSERVED
+${no.map(i=>'• '+i.text).join('\n')||'None'}
+
+SESSION LOG
+${sessionLog.length?sessionLog.join('\n'):'No session events recorded.'}
+
+Evaluator review required before final use.`;
+}
+function showAAR(){aarText.textContent=aar();modal.style.display='flex'}
+async function copyAAR(){try{await navigator.clipboard.writeText(aar());alert('AAR copied')}catch(e){alert('Clipboard unavailable')}}
+function exportJSON(){
+  const exportState={
+    app:"TCCC_TTA_TIER4",
+    version:4,
+    exportedAt:new Date().toISOString(),
+    data:state
+  };
+  const blob=new Blob([JSON.stringify(exportState,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='TCCC_TTA_'+(state.student||'Student').replace(/\W+/g,'_')+'_backup.json';
+  document.body.appendChild(a);
+  a.click();
+  const savedName=a.download;
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+  addEvent('EXPORT','Backup',savedName);
+}
+
+function restoreJSON(event){
+  const input=event.target;
+  const file=input.files&&input.files[0];
+  if(!file)return;
+
+  const reader=new FileReader();
+
+  reader.onload=function(){
+    try{
+      const parsed=JSON.parse(reader.result);
+      const candidate=parsed&&parsed.data?parsed.data:parsed;
+
+      if(!candidate||typeof candidate!=='object'){
+        throw new Error('Invalid backup structure.');
+      }
+
+      const required=['ratings','notes','stamps','timers','events'];
+      required.forEach(key=>{
+        if(!(key in candidate))throw new Error('Missing required field: '+key);
+      });
+
+      if(typeof candidate.ratings!=='object'||Array.isArray(candidate.ratings))throw new Error('Invalid ratings data.');
+      if(typeof candidate.notes!=='object'||Array.isArray(candidate.notes))throw new Error('Invalid notes data.');
+      if(typeof candidate.stamps!=='object'||Array.isArray(candidate.stamps))throw new Error('Invalid timestamp data.');
+      if(typeof candidate.timers!=='object'||Array.isArray(candidate.timers))throw new Error('Invalid timer data.');
+      if(!Array.isArray(candidate.events))throw new Error('Invalid event log.');
+
+      const ok=confirm(
+        'Restore this TTA evaluation?\n\n'+
+        'Student: '+(candidate.student||'Unknown student')+'\n'+
+        'Evaluator: '+(candidate.evaluator||'—')+'\n'+
+        'Attempt: '+(candidate.attempt||'—')+'\n\n'+
+        'This will replace the evaluation currently stored on this device.'
+      );
+
+      if(!ok){
+        input.value='';
+        return;
+      }
+
+      state=Object.assign(blankState(),candidate);
+      state.ratings=state.ratings||{};
+      state.notes=state.notes||{};
+      state.stamps=state.stamps||{};
+      state.timers=state.timers||{};
+      state.instants=state.instants||{};
+      state.events=Array.isArray(state.events)?state.events:[];
+      state.section=sections.some(s=>s.code===state.section)?state.section:'CUF';
+      state.attempt=state.attempt||'1st';
+
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+
+      student.value=state.student||'';
+      evaluator.value=state.evaluator||'';
+      attempt.value=state.attempt||'1st';
+
+      addEvent('RESTORE','Backup Restored',file.name);
+      renderAll();
+      alert('Evaluation restored successfully.');
+    }catch(err){
+      alert('That file could not be restored.\n\n'+err.message);
+    }finally{
+      input.value='';
+    }
+  };
+
+  reader.onerror=function(){
+    alert('The backup file could not be read.');
+    input.value='';
+  };
+
+  reader.readAsText(file);
+}
+
+function xmlEscape(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+function colName(n){let s='';n++;while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s}
+function sheetXml(rows,widths=[]){let b='';rows.forEach((row,r)=>{let c='';row.forEach((v,i)=>{if(v===null||v===undefined||v==='')return;const ref=colName(i)+(r+1);c+=`<c r="${ref}" t="inlineStr" s="${r===0?1:0}"><is><t xml:space="preserve">${xmlEscape(v)}</t></is></c>`});b+=`<row r="${r+1}">${c}</row>`});let cols=widths.length?'<cols>'+widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')+'</cols>':'';return `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${b}</sheetData></worksheet>`}
+function crc32(bytes){let t=crc32.t;if(!t){t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?0xEDB88320^(c>>>1):(c>>>1);t[n]=c>>>0}crc32.t=t}let crc=0xFFFFFFFF;for(const b of bytes)crc=t[(crc^b)&255]^(crc>>>8);return(crc^0xFFFFFFFF)>>>0}
+const u16=n=>new Uint8Array([n&255,(n>>>8)&255]),u32=n=>new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);
+function cat(a){const l=a.reduce((x,y)=>x+y.length,0),o=new Uint8Array(l);let p=0;a.forEach(x=>{o.set(x,p);p+=x.length});return o}
+function makeZip(files){const enc=new TextEncoder(),locals=[],cent=[];let off=0;for(const f of files){const name=enc.encode(f.name),data=enc.encode(f.data),crc=crc32(data);const local=cat([u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),name,data]);locals.push(local);cent.push(cat([u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off),name]));off+=local.length}const lb=cat(locals),cb=cat(cent),end=cat([u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cb.length),u32(lb.length),u16(0)]);return new Blob([lb,cb,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+
+function exportExcel(){const all=sections.flatMap(s=>s.items),t=state.timers.tta||{},sum=[['TCCC Tier 4 TTA Completed Evaluation','Value'],['Student',state.student],['Evaluator',state.evaluator],['Attempt',state.attempt],['TTA Start',t.start?iso(t.start):''],['TTA End',t.stop?iso(t.stop):''],['Total TTA',t.start?dur((t.stop||nowMs())-t.start):''],['Critical Missed',all.filter(i=>i.critical&&state.ratings[i.id]==='NOT MET').length]];const checklist=[['ID','Section','Critical','Checklist Item','Result','Recorded Timestamp','Evaluator Note']];sections.forEach(s=>s.items.forEach(i=>checklist.push([i.id,s.code,i.critical?'C':'',i.text,state.ratings[i.id]||'',state.stamps[i.id]?iso(state.stamps[i.id]):'',state.notes[i.id]||''])));const timerRows=[['Event','Start Timestamp','Stop Timestamp','Elapsed','Standard','Result']];timerDefs.forEach(d=>{const x=state.timers[d.id]||{},e=x.start&&x.stop?x.stop-x.start:null;timerRows.push([d.label,x.start?iso(x.start):'',x.stop?iso(x.stop):'',e!==null?dur(e):'',d.standard,e!==null?timerResult(d,e).text:''])});const events=[['Timestamp','Type','Label','Detail','Item ID']];state.events.forEach(e=>events.push([e.timestamp,e.type,e.label,e.detail,e.itemId||'']));const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${[1,2,3,4].map(n=>`<Override PartName="/xl/worksheets/sheet${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`;const rel=`<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;const wbx=`<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Summary" sheetId="1" r:id="rId1"/><sheet name="Checklist" sheetId="2" r:id="rId2"/><sheet name="Timers" sheetId="3" r:id="rId3"/><sheet name="Event Log" sheetId="4" r:id="rId4"/></sheets></workbook>`;const wbr=`<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${[1,2,3,4].map(n=>`<Relationship Id="rId${n}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${n}.xml"/>`).join('')}<Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;const sty=`<?xml version="1.0"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF121212"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf/><xf fontId="1" fillId="2" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0"/></cellStyles></styleSheet>`;const files=[{name:'[Content_Types].xml',data:ct},{name:'_rels/.rels',data:rel},{name:'xl/workbook.xml',data:wbx},{name:'xl/_rels/workbook.xml.rels',data:wbr},{name:'xl/styles.xml',data:sty},{name:'xl/worksheets/sheet1.xml',data:sheetXml(sum,[32,48])},{name:'xl/worksheets/sheet2.xml',data:sheetXml(checklist,[10,10,10,80,14,28,48])},{name:'xl/worksheets/sheet3.xml',data:sheetXml(timerRows,[28,28,28,16,18,28])},{name:'xl/worksheets/sheet4.xml',data:sheetXml(events,[28,20,40,80,12])}];const blob=makeZip(files),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='TCCC_TTA_'+(state.student||'Student').replace(/\W+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),600);addEvent('EXPORT','Excel',a.download)}
+function resetEval(){if(!confirm('Clear this entire evaluation and start a new one?'))return;localStorage.removeItem(STORAGE_KEY);state=blankState();student.value='';evaluator.value='';attempt.value='1st';renderAll()}
+function renderAll(){renderOverall();renderChecklist();renderLog();updateKPIs()}
+function boot(){student.value=state.student||'';evaluator.value=state.evaluator||'';attempt.value=state.attempt||'1st';student.oninput=evaluator.oninput=attempt.onchange=save;renderAll();if(interval)clearInterval(interval);interval=setInterval(tick,250);if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{})}
+boot();
+</script>
+</body>
+</html>
